@@ -85,6 +85,7 @@ def initialize_env_file(env_file_path):
         f.write(f'ENDPOINT_URL={endpoint_url}\n')
         f.write(f'WATCH_INTERVAL={int(watch_interval)}\n')
         f.write(f'DISCORD_WEBHOOK_URL={notify_webhook_url}\n')
+        f.write(f'DISCORD_MENTION_CODE={notify_mention_code}\n')
 
     print(f"Endpoint URL, Watch Interval, and Webhook URL have been saved to {env_file_path}")
     return endpoint_url, watch_interval, notify_webhook_url, notify_mention_code
