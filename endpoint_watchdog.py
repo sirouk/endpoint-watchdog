@@ -24,16 +24,13 @@ import difflib
 
 
 # Constants
-DPASTE_MAX_LENGTH = 5000
+DPASTE_MAX_LENGTH = 1000000
+DISCORD_MAX_LENGTH = 2000
 CACHE_FILE = "endpoint_cache.json"
 
 # Updates
 auto_update_enabled = True
 UPDATE_INTERVAL_MULTIPLIER = 5  # number of iterations before checking for updates
-
-# Comms
-discord_mention_code = '<@&1203050411611652156>' # You can get this by putting a \ in front of a mention and sending a message in discord GUI client
-
 
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -73,6 +70,15 @@ def initialize_env_file(env_file_path):
             notify_webhook_url = input("Please enter a valid Discord notify_webhook URL: ").strip()
     #validate_notify_webhook(endpoint_url, notify_webhook_url)
     
+    # Check for DISCORD_MENTION_CODE
+    notify_mention_code = os.getenv('DISCORD_MENTION_CODE')
+    if not notify_mention_code:
+        print("Discord mention code is required to run this script.")
+        notify_mention_code = input("Please enter your Discord mention code: ").strip()
+        while not re.match(r'<@&\d+>', notify_mention_code):
+            print("Invalid mention code. It should be in the format '<@&1234567890>'")
+            notify_mention_code = input("Please enter a valid Discord mention code: ").strip()
+
 
     # Save both URLs to the .env file
     with open(env_file_path, 'w') as f:
@@ -81,7 +87,7 @@ def initialize_env_file(env_file_path):
         f.write(f'DISCORD_WEBHOOK_URL={notify_webhook_url}\n')
 
     print(f"Endpoint URL, Watch Interval, and Webhook URL have been saved to {env_file_path}")
-    return endpoint_url, watch_interval, notify_webhook_url
+    return endpoint_url, watch_interval, notify_webhook_url, notify_mention_code
 
 
 def validate_endpoint(endpoint_url):
@@ -153,7 +159,7 @@ def report_for_duty(endpoint_url, message_topic, message_contents, notify_webhoo
     message = greeting + \
               f"**{message_topic} Details:**\n\n{message_contents}\n\n"
                       
-    if diff_content or len(message) > DPASTE_MAX_LENGTH:
+    if diff_content or len(message) > DISCORD_MAX_LENGTH:
         # Post lengthy message to dpaste and get the link
         dpaste_link = post_to_dpaste(diff_content or message)
         short_message = (message if diff_content else greeting) + \
@@ -265,7 +271,7 @@ def save_cache(cache):
         json.dump(cache, f)
 
 
-def process_endpoint_response(endpoint_url, notify_webhook_url, is_initial_check=False):
+def process_endpoint_response(endpoint_url, notify_webhook_url, notify_mention_code, is_initial_check=False):
     print(f"[{datetime.datetime.now()}] Processing Endpoint Response...")
 
     # Load or initialize cache
@@ -297,7 +303,7 @@ def process_endpoint_response(endpoint_url, notify_webhook_url, is_initial_check
 
         # Save updated cache
         message = (
-            f":warning: {discord_mention_code} Endpoint changes detected!\n\n"
+            f":warning: {notify_mention_code} Endpoint changes detected!\n\n"
             f"**New Response Length:** {response_length}\n"
             f"**New Response Hash:** {response_hash}\n\n"
         )
@@ -311,14 +317,14 @@ def process_endpoint_response(endpoint_url, notify_webhook_url, is_initial_check
 def main():
 
     # Load .env file, or initialize it if it doesn't exist
-    endpoint_url, watch_interval, notify_webhook_url = initialize_env_file(env_file)
+    endpoint_url, watch_interval, notify_webhook_url, notify_mention_code = initialize_env_file(env_file)
 
     # Check Updates
     if auto_update_enabled:
         update_start_time = check_for_updates()
         
     # Perform the initial check and report
-    process_endpoint_response(endpoint_url, notify_webhook_url, is_initial_check=True)
+    process_endpoint_response(endpoint_url, notify_webhook_url, notify_mention_code, is_initial_check=True)
 
     # Initialize the watchdog liveness timer
     watchdog_liveness = time.time()
@@ -329,7 +335,7 @@ def main():
             if int(time.time() - watchdog_liveness) >= int(watch_interval) * 60:
 
                 # Uptime liveness check
-                process_endpoint_response(endpoint_url, notify_webhook_url)
+                process_endpoint_response(endpoint_url, notify_webhook_url, notify_mention_code)
 
                 watchdog_liveness = time.time()
 

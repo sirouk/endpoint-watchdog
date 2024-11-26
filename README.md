@@ -60,7 +60,7 @@ Run the script:
 python3 endpoint_watchdog.py
 ```
 
-On the first run, you will be prompted to enter your endpoint URL, watch interval, and Discord webhook URL. The script will validate these inputs and save them to a `.env` file for future use.
+On the first run, you will be prompted to enter your endpoint URL, watch interval, Discord webhook URL, and Discord mention code. The script will validate these inputs and save them to a `.env` file for future use.
 
 ### Running as a PM2 service
 
@@ -111,13 +111,15 @@ The script uses the following variables that you can configure in the `.env` fil
 - `ENDPOINT_URL`: The URL of the JSON endpoint to monitor
 - `WATCH_INTERVAL`: The interval in minutes between each check
 - `DISCORD_WEBHOOK_URL`: The Discord webhook URL to send notifications
+- `DISCORD_MENTION_CODE`: The Discord group to tag for the change notifications. You can get this by putting a \ in front of a mention and sending a message in discord GUI client
 
 Additional constants in the code:
 
 - `CACHE_FILE`: Filename for caching responses
 - `auto_update_enabled`: Set to `True` to enable auto-updates from the GitHub repository
 - `UPDATE_INTERVAL_MULTIPLIER`: Multiplier for how often updates are checked relative to the watch interval
-- `DPASTE_MAX_LENGTH`: Maximum size of the diff to include in a Discord message before truncation
+- `DISCORD_MAX_LENGTH`: Maximum size of a message to send to Discord before truncation
+- `DPASTE_MAX_LENGTH`: Maximum size of the diff to to include in a dpaste link before truncation
 
 ## Contributing
 
@@ -130,4 +132,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Disclaimer
 
 This script is not officially associated with any endpoint provider. Use at your own risk.
+
 # endpoint-watchdog
