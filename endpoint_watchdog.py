@@ -260,7 +260,7 @@ def fetch_and_format_response(url, fields_to_ignore=None):
                 return [remove_fields(item, fields) for item in data]
             return data
 
-        filtered_json = remove_fields(json_data, fields_to_ignore)
+        filtered_json = remove_fields(json_data, fields_to_ignore or [])
         formatted_data = json.dumps(filtered_json, indent=4, sort_keys=True)  # Pretty format
         return formatted_data.splitlines()  # Split into lines for processing
     except ValueError as e:
@@ -361,7 +361,7 @@ def main():
             if int(time.time() - watchdog_liveness) >= int(watch_interval) * 60:
 
                 # Uptime liveness check
-                process_endpoint_response(endpoint_url, notify_webhook_url, fields_to_ignore, notify_mention_code)
+                process_endpoint_response(endpoint_url, notify_webhook_url, notify_mention_code, fields_to_ignore)
 
                 watchdog_liveness = time.time()
 
