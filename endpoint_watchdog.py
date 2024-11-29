@@ -32,6 +32,9 @@ CACHE_FILE = "endpoint_cache.json"
 auto_update_enabled = True
 UPDATE_INTERVAL_MULTIPLIER = 5  # number of iterations before checking for updates
 
+# Timestamp pattern
+timestamp_pattern = re.compile(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z')
+
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -65,8 +68,8 @@ def initialize_env_file(env_file_path):
     if not notify_webhook_url:
         print("Discord notify_webhook URL is required to run this script.")
         notify_webhook_url = input("Please enter your Discord notify_webhook URL: ").strip()
-        while not notify_webhook_url.startswith("https://discord.com/api/notify_webhooks/"):
-            print("Invalid notify_webhook URL. It should start with 'https://discord.com/api/notify_webhooks/'")
+        while not notify_webhook_url.startswith("https://discord.com/api/webhooks/"):
+            print("Invalid notify_webhook URL. It should start with 'https://discord.com/api/webhooks/'")
             notify_webhook_url = input("Please enter a valid Discord notify_webhook URL: ").strip()
     #validate_notify_webhook(endpoint_url, notify_webhook_url)
     
@@ -78,17 +81,30 @@ def initialize_env_file(env_file_path):
         while not re.match(r'<@&\d+>', notify_mention_code):
             print("Invalid mention code. It should be in the format '<@&1234567890>'")
             notify_mention_code = input("Please enter a valid Discord mention code: ").strip()
+            
+    # Check for IGNORE_TIMESTAMPS (a true/false flag to ignore timestamps in the diff)
+    ignore_timestamps = os.getenv('IGNORE_TIMESTAMPS')
+    if not ignore_timestamps:
+        print("Ignore Timestamps flag is required to run this script.")
+        ignore_timestamps = input("Please enter the ignore timestamps flag (True/False): ").strip()
+        while ignore_timestamps.lower() not in ['true', 'false']:
+            print("Invalid ignore timestamps flag. It should be either 'True' or 'False'")
+            ignore_timestamps = input("Please enter a valid ignore timestamps flag (True/False): ").strip()
 
 
     # Save both URLs to the .env file
     with open(env_file_path, 'w') as f:
         f.write(f'ENDPOINT_URL={endpoint_url}\n')
         f.write(f'WATCH_INTERVAL={int(watch_interval)}\n')
+        f.write(f'IGNORE_TIMESTAMPS={ignore_timestamps}\n')
         f.write(f'DISCORD_WEBHOOK_URL={notify_webhook_url}\n')
         f.write(f'DISCORD_MENTION_CODE={notify_mention_code}\n')
+    
+    # Convert ignore_timestamps to a boolean
+    ignore_timestamps = ignore_timestamps.lower() == 'true'
 
     print(f"Endpoint URL, Watch Interval, and Webhook URL have been saved to {env_file_path}")
-    return endpoint_url, watch_interval, notify_webhook_url, notify_mention_code
+    return endpoint_url, watch_interval, ignore_timestamps, notify_webhook_url, notify_mention_code
 
 
 def validate_endpoint(endpoint_url):
@@ -227,7 +243,7 @@ def check_for_updates():
         return time.time()
 
 
-def fetch_and_format_response(url):
+def fetch_and_format_response(url, ignore_timestamps=False):
     """
     Fetch and format the JSON response from the given URL.
     """
@@ -237,7 +253,10 @@ def fetch_and_format_response(url):
     try:
         json_data = response.json()  # Parse JSON
         formatted_data = json.dumps(json_data, indent=4, sort_keys=True)  # Pretty format
-        return formatted_data.splitlines()  # Return as list of lines for diffing
+        lines = formatted_data.splitlines()  # Split into lines for processing
+        if ignore_timestamps:
+            lines = [line for line in lines if not timestamp_pattern.search(line)]
+        return lines
     except ValueError as e:
         raise Exception("Failed to parse response as JSON") from e
 
@@ -272,13 +291,13 @@ def save_cache(cache):
         json.dump(cache, f)
 
 
-def process_endpoint_response(endpoint_url, notify_webhook_url, notify_mention_code, is_initial_check=False):
+def process_endpoint_response(endpoint_url, notify_webhook_url, notify_mention_code, ignore_timestamps=False, is_initial_check=False):
     print(f"[{datetime.datetime.now()}] Processing Endpoint Response...")
 
     # Load or initialize cache
     cache = load_cache()
     cached_response = cache.get('response', [])
-    endpoint_response = fetch_and_format_response(endpoint_url)
+    endpoint_response = fetch_and_format_response(endpoint_url, ignore_timestamps)
     response_hash = calculate_hash(endpoint_response)
     response_length = len("\n".join(endpoint_response))
 
@@ -318,14 +337,14 @@ def process_endpoint_response(endpoint_url, notify_webhook_url, notify_mention_c
 def main():
 
     # Load .env file, or initialize it if it doesn't exist
-    endpoint_url, watch_interval, notify_webhook_url, notify_mention_code = initialize_env_file(env_file)
+    endpoint_url, watch_interval, ignore_timestamps, notify_webhook_url, notify_mention_code = initialize_env_file(env_file)
 
     # Check Updates
     if auto_update_enabled:
         update_start_time = check_for_updates()
         
     # Perform the initial check and report
-    process_endpoint_response(endpoint_url, notify_webhook_url, notify_mention_code, is_initial_check=True)
+    process_endpoint_response(endpoint_url, notify_webhook_url, notify_mention_code, ignore_timestamps, is_initial_check=True)
 
     # Initialize the watchdog liveness timer
     watchdog_liveness = time.time()
@@ -336,7 +355,7 @@ def main():
             if int(time.time() - watchdog_liveness) >= int(watch_interval) * 60:
 
                 # Uptime liveness check
-                process_endpoint_response(endpoint_url, notify_webhook_url, notify_mention_code)
+                process_endpoint_response(endpoint_url, notify_webhook_url, ignore_timestamps, notify_mention_code)
 
                 watchdog_liveness = time.time()
 
