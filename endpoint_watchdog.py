@@ -21,6 +21,7 @@ import socket
 import hashlib
 import json
 import difflib
+import canonicaljson
 
 
 # Constants
@@ -238,6 +239,18 @@ def check_for_updates():
         return time.time()
 
 
+def remove_fields(data, fields):
+    if isinstance(data, dict):
+        return {
+            key: remove_fields(value, fields)
+            for key, value in data.items()
+            if key not in fields
+        }
+    elif isinstance(data, list):
+        return [remove_fields(item, fields) for item in data]
+    return data
+
+
 def fetch_and_format_response(url, fields_to_ignore=None):
     """
     Fetch and format the JSON response from the given URL.
@@ -247,27 +260,23 @@ def fetch_and_format_response(url, fields_to_ignore=None):
         raise Exception(f"Failed to fetch response from {url}. Status code: {response.status_code}")
     try:
         json_data = response.json()  # Parse JSON
-        
-        # Recursively remove fields from the JSON
-        def remove_fields(data, fields):
-            if isinstance(data, dict):
-                return {
-                    key: remove_fields(value, fields)
-                    for key, value in data.items()
-                    if key not in fields
-                }
-            elif isinstance(data, list):
-                return [remove_fields(item, fields) for item in data]
-            return data
 
-        filtered_json = remove_fields(json_data, fields_to_ignore or [])
-        formatted_data = json.dumps(filtered_json, indent=4, sort_keys=True)  # Pretty format
-        return formatted_data.splitlines()  # Split into lines for processing
+        # Remove fields to ignore and canonicalize the JSON
+        json_data = remove_fields(json_data, fields_to_ignore or [])
+        json_data = canonicaljson.encode_canonical_json(json_data).decode('utf-8')
+                
+        #json_data = json.dumps(json_data, indent=4)  # Pretty format
+        return json_data.splitlines()  # Split into lines for processing
     except ValueError as e:
         raise Exception("Failed to parse response as JSON") from e
 
 
 def generate_diff(old_data, new_data):
+    
+    # Split the data into lines
+    old_data = old_data.splitlines()
+    new_data = new_data.splitlines()
+    
     diff = difflib.unified_diff(
         old_data,
         new_data,
