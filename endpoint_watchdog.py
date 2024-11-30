@@ -286,7 +286,17 @@ def fetch_and_format_response(url, fields_to_ignore=None):
         raise Exception(f"Failed to fetch response from {url}. Status code: {response.status_code}")
     try:
         # This returns a list of dictionaries
-        json_data = response.json()  # Parse JSON
+        try:
+            json_data = response.json()  # Parse JSON
+        except json.decoder.JSONDecodeError:
+            # If the response is not empty turn it into a dictionary
+            if response.text:
+                # remove empty lines and create a dictionary with each plain text line, zero pad the numbers
+                lines = response.text.splitlines()
+                pad_length = len(str(len(lines)))
+                json_data = {f"line_{i:0{pad_length}d}": line for i, line in enumerate(lines, 1) if line}
+            else:
+                raise Exception("Failed to parse response as JSON")
 
         # Remove fields to ignore and canonicalize the JSON
         json_data = remove_fields(json_data, fields_to_ignore or [])
