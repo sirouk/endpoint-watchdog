@@ -79,8 +79,8 @@ def initialize_env_file(env_file_path):
     if not notify_mention_code:
         print("Discord mention code is required to run this script.")
         notify_mention_code = input("Please enter your Discord mention code: ").strip()
-        while not re.match(r'<@&\d+>', notify_mention_code):
-            print("Invalid mention code. It should be in the format '<@&1234567890>'")
+        while not re.match(r'<@\d+>', notify_mention_code):
+            print("Invalid mention code. It should be in the format '<@1234567890>'")
             notify_mention_code = input("Please enter a valid Discord mention code: ").strip()
     
     # Check for FIELDS_TO_IGNORE (a CSV of JSON fields to ignore in the diff)
