@@ -69,7 +69,7 @@ On the first run, you will be prompted to enter your endpoint URL, watch interva
 Start the PM2 service:
 
 ```bash
-pm2 start "python3 endpoint_watchdog.py custom-name" --name "custom-name-watchdog"
+pm2 start "python3 endpoint_watchdog.py 'custom-name'" --name "custom-name-watchdog"
 pm2 save --force
 ```
 
