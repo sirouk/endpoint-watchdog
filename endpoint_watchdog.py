@@ -250,15 +250,31 @@ def remove_fields(data, fields):
     return data
 
 
-def sort_nested(data):
-    if isinstance(data, dict):
-        return {
-            key: sort_nested(value)
-            for key, value in sorted(data.items())
-        }
-    elif isinstance(data, list):
-        return [sort_nested(item) for item in data]
-    return data
+def recursively_sort_json(value):
+    if isinstance(value, dict):
+        # Sort the dictionary's keys and recursively sort the values
+        return {k: recursively_sort_json(value[k]) for k in sorted(value)}
+    elif isinstance(value, list):
+        # Recursively sort each item in the list
+        sorted_items = [recursively_sort_json(item) for item in value]
+        # Now sort the list itself based on the items' content
+        sorted_items.sort(key=json_sort_key)
+        return sorted_items
+    else:
+        # Base case: return the value as is (for strings, numbers, etc.)
+        return value
+
+
+def json_sort_key(value):
+    if isinstance(value, dict):
+        # Convert the dict to a tuple of sorted key-value pairs for comparison
+        return tuple((k, json_sort_key(value[k])) for k in sorted(value))
+    elif isinstance(value, list):
+        # Convert the list to a tuple of its items for comparison
+        return tuple(json_sort_key(item) for item in value)
+    else:
+        # Base case: return the value directly
+        return value
 
 
 def fetch_and_format_response(url, fields_to_ignore=None):
@@ -272,24 +288,12 @@ def fetch_and_format_response(url, fields_to_ignore=None):
         # This returns a list of dictionaries
         json_data = response.json()  # Parse JSON
 
-        # If the response is a list of dictionaries, take the first dictionary
-        if isinstance(json_data, list):
-            # if the first element is a dictionary, take it
-            if isinstance(json_data[0], dict):
-                json_data = json_data[0]
-            else:
-                raise Exception("Response is not a list of dictionaries")
-        elif not isinstance(json_data, dict):
-            raise Exception("Response is not a dictionary")
-
-        print("Response parsed successfully.")
-        
         # Remove fields to ignore and canonicalize the JSON
         json_data = remove_fields(json_data, fields_to_ignore or [])
         print("Fields removed successfully.")
         
         # Sort the JSON keys
-        json_data = sort_nested(json_data)
+        json_data = recursively_sort_json(json_data)
         print("JSON sorted successfully.")
         
         # Canonicalize the JSON
