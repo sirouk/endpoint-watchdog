@@ -37,14 +37,16 @@ npm install pm2@latest -g && pm2 update && pm2 save --force && pm2 startup && pm
 Clone this repository:
 
 ```bash
+export WATCHDOG_NAME="Name"
+export WATCHDOG_SERVICE="name-watchdog"
 cd $HOME
-git clone https://github.com/sirouk/endpoint-watchdog.git
-cd endpoint-watchdog
+git clone https://github.com/sirouk/endpoint-watchdog $WATCHDOG_SERVICE
 ```
 
 Install the required Python packages:
 
 ```bash
+cd $HOME/$WATCHDOG_SERVICE
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -57,7 +59,7 @@ pip install -r requirements.txt
 Run the script:
 
 ```bash
-cd $HOME/endpoint-watchdog
+cd $HOME/$WATCHDOG_SERVICE
 source .venv/bin/activate
 python3 endpoint_watchdog.py
 ```
@@ -69,7 +71,7 @@ On the first run, you will be prompted to enter your endpoint URL, watch interva
 Start the PM2 service:
 
 ```bash
-pm2 start endpoint_watchdog.py --name "custom-name-watchdog" --interpreter python3 -- "Custom Name"
+pm2 start endpoint_watchdog.py --name "$WATCHDOG_SERVICE" --interpreter python3 -- "$WATCHDOG_NAME"
 pm2 save --force
 pm2 logs custom-name-watchdog
 ```
@@ -92,19 +94,19 @@ pm2 set pm2-logrotate:rotateInterval '00 */6 * * *'
 To view logs:
 
 ```bash
-pm2 logs custom-name-watchdog
+pm2 logs $WATCHDOG_SERVICE
 ```
 
 To stop the service:
 
 ```bash
-pm2 stop custom-name-watchdog
+pm2 stop $WATCHDOG_SERVICE
 ```
 
 To restart the service:
 
 ```bash
-pm2 restart custom-name-watchdog
+pm2 restart $WATCHDOG_SERVICE
 ```
 
 ## Configuration
