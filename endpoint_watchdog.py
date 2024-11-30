@@ -270,6 +270,9 @@ def fetch_and_format_response(url, fields_to_ignore=None):
         raise Exception(f"Failed to fetch response from {url}. Status code: {response.status_code}")
     try:
         json_data = response.json()  # Parse JSON
+        # print the type of object
+        print(type(json_data))
+        quit()
 
         # Remove fields to ignore and canonicalize the JSON
         json_data = remove_fields(json_data, fields_to_ignore or [])
