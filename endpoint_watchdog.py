@@ -250,6 +250,17 @@ def remove_fields(data, fields):
     return data
 
 
+def sort_nested(data):
+    if isinstance(data, dict):
+        return {
+            key: sort_nested(value)
+            for key, value in sorted(data.items())
+        }
+    elif isinstance(data, list):
+        return [sort_nested(item) for item in data]
+    return data
+
+
 def fetch_and_format_response(url, fields_to_ignore=None):
     """
     Fetch and format the JSON response from the given URL.
@@ -262,6 +273,11 @@ def fetch_and_format_response(url, fields_to_ignore=None):
 
         # Remove fields to ignore and canonicalize the JSON
         json_data = remove_fields(json_data, fields_to_ignore or [])
+        
+        # Sort the JSON keys
+        json_data = sort_nested(json_data)
+        
+        # Canonicalize the JSON
         json_data = canonicaljson.encode_canonical_json(json_data).decode('utf-8')
                 
         #json_data = json.dumps(json_data, indent=4)  # Pretty format
