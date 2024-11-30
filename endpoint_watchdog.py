@@ -274,12 +274,14 @@ def fetch_and_format_response(url, fields_to_ignore=None):
 
         # If the response is a list of dictionaries, take the first dictionary
         if isinstance(json_data, list):
-            json_data = json_data[0]
+            # if the first element is a dictionary, take it
+            if isinstance(json_data[0], dict):
+                json_data = json_data[0]
+            else:
+                raise Exception("Response is not a list of dictionaries")
+        elif not isinstance(json_data, dict):
+            raise Exception("Response is not a dictionary")
         
-        # print type
-        print(type(json_data))
-        quit()
-
         # Remove fields to ignore and canonicalize the JSON
         json_data = remove_fields(json_data, fields_to_ignore or [])
         
