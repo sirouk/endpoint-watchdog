@@ -281,15 +281,20 @@ def fetch_and_format_response(url, fields_to_ignore=None):
                 raise Exception("Response is not a list of dictionaries")
         elif not isinstance(json_data, dict):
             raise Exception("Response is not a dictionary")
+
+        print("Response parsed successfully.")
         
         # Remove fields to ignore and canonicalize the JSON
         json_data = remove_fields(json_data, fields_to_ignore or [])
+        print("Fields removed successfully.")
         
         # Sort the JSON keys
         json_data = sort_nested(json_data)
+        print("JSON sorted successfully.")
         
         # Canonicalize the JSON
         json_data = canonicaljson.encode_canonical_json(json_data).decode('utf-8')
+        print("JSON canonicalized successfully.")
                 
         #json_data = json.dumps(json_data, indent=4)  # Pretty format
         #return json_data.splitlines()  # Split into lines for processing
