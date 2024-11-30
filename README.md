@@ -73,7 +73,7 @@ Start the PM2 service:
 ```bash
 pm2 start endpoint_watchdog.py --name "$WATCHDOG_SERVICE" --interpreter python3 -- "$WATCHDOG_NAME"
 pm2 save --force
-pm2 logs custom-name-watchdog
+pm2 logs $WATCHDOG_SERVICE
 ```
 
 Set up PM2 Logrotate:
