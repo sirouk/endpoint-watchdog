@@ -271,7 +271,7 @@ def fetch_and_format_response(url, fields_to_ignore=None):
     try:
         json_data = response.json()  # Parse JSON
         # print the type of object
-        print(type(json_data))
+        print(json_data)
         quit()
 
         # Remove fields to ignore and canonicalize the JSON
