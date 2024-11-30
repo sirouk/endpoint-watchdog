@@ -269,9 +269,15 @@ def fetch_and_format_response(url, fields_to_ignore=None):
     if response.status_code != 200:
         raise Exception(f"Failed to fetch response from {url}. Status code: {response.status_code}")
     try:
+        # This returns a list of dictionaries
         json_data = response.json()  # Parse JSON
-        # print the type of object
-        print(json_data)
+
+        # If the response is a list of dictionaries, take the first dictionary
+        if isinstance(json_data, list):
+            json_data = json_data[0]
+        
+        # print type
+        print(type(json_data))
         quit()
 
         # Remove fields to ignore and canonicalize the JSON
