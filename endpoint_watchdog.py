@@ -159,7 +159,9 @@ def report_for_duty(endpoint_url, message_topic, message_contents, notify_webhoo
     # if initialized, if diff, else if error
     initial_greeting = "Initialized" if is_initial_check else "Changes Detected" if diff_content else "Error"
     
-    greeting = f"# :eyes: _Endpoint Watchdog {initial_greeting}!_\n" + \
+    watchdog_name = ' ' + sys.argv[1] if sys.argv[1:] else 'Endpoint'
+    
+    greeting = f"# :eyes: _{watchdog_name} Watchdog {initial_greeting}!_\n" + \
               f"**Endpoint URL:** {endpoint_url}\n\n" + \
               f"**Host Name:** {host_name}\n" + \
               f"**Host IP:** {host_ip}\n" + \
