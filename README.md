@@ -62,15 +62,16 @@ source .venv/bin/activate
 python3 endpoint_watchdog.py
 ```
 
-On the first run, you will be prompted to enter your endpoint URL, watch interval, Discord webhook URL, and Discord mention code. The script will validate these inputs and save them to a `.env` file for future use.
+On the first run, you will be prompted to enter your endpoint URL, watch interval, Discord webhook URL, and Discord mention code. The script will validate these inputs and save them to a `.env` file for future use. Kill the script with `Ctrl+C` to stop it if you plan to run it as a service with PM2.
 
 ### Running as a PM2 service
 
 Start the PM2 service:
 
 ```bash
-pm2 start "python3 endpoint_watchdog.py 'custom-name'" --name "custom-name-watchdog"
+pm2 start endpoint_watchdog.py --name "custom-name-watchdog" --interpreter python3 -- "Custom Name"
 pm2 save --force
+pm2 logs custom-name-watchdog
 ```
 
 Set up PM2 Logrotate:
