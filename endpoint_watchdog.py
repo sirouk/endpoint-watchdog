@@ -51,7 +51,14 @@ def initialize_env_file(env_file_path):
         print("Endpoint URL is required to run this script.")
         endpoint_url = input("Please enter the endpoint URL: ").strip()
     validate_endpoint(endpoint_url)
-
+    
+    # Check for FIELDS_TO_IGNORE (a CSV of JSON fields to ignore in the diff)
+    fields_to_ignore = os.getenv('FIELDS_TO_IGNORE')
+    if not fields_to_ignore:
+        print("Fields to ignore (CSV) are required to run this script.")
+        fields_to_ignore = input("Please enter the fields to ignore as a comma-separated list: ").strip()
+    fields_to_ignore = [field.strip() for field in fields_to_ignore.split(',') if field.strip()]
+    
     # Check for ENDPOINT_URL
     watch_interval = os.getenv('WATCH_INTERVAL')
     if not watch_interval:
@@ -79,20 +86,13 @@ def initialize_env_file(env_file_path):
         while not re.match(r'<@\d+>', notify_mention_code):
             print("Invalid mention code. It should be in the format '<@1234567890>'")
             notify_mention_code = input("Please enter a valid Discord mention code: ").strip()
-    
-    # Check for FIELDS_TO_IGNORE (a CSV of JSON fields to ignore in the diff)
-    fields_to_ignore = os.getenv('FIELDS_TO_IGNORE')
-    if not fields_to_ignore:
-        print("Fields to ignore (CSV) are required to run this script.")
-        fields_to_ignore = input("Please enter the fields to ignore as a comma-separated list: ").strip()
-    fields_to_ignore = [field.strip() for field in fields_to_ignore.split(',') if field.strip()]
 
 
     # Save both URLs to the .env file
     with open(env_file_path, 'w') as f:
         f.write(f'ENDPOINT_URL={endpoint_url}\n')
-        f.write(f'WATCH_INTERVAL={int(watch_interval)}\n')
         f.write(f'FIELDS_TO_IGNORE={",".join(fields_to_ignore)}\n')
+        f.write(f'WATCH_INTERVAL={int(watch_interval)}\n')
         f.write(f'DISCORD_WEBHOOK_URL={notify_webhook_url}\n')
         f.write(f'DISCORD_MENTION_CODE={notify_mention_code}\n')
 
