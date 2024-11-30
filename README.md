@@ -37,6 +37,7 @@ npm install pm2@latest -g && pm2 update && pm2 save --force && pm2 startup && pm
 Clone this repository:
 
 ```bash
+cd $HOME
 git clone https://github.com/sirouk/endpoint-watchdog.git
 cd endpoint-watchdog
 ```
@@ -47,7 +48,6 @@ Install the required Python packages:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-deactivate
 ```
 
 ## Usage
@@ -57,6 +57,8 @@ deactivate
 Run the script:
 
 ```bash
+cd $HOME/endpoint-watchdog
+source .venv/bin/activate
 python3 endpoint_watchdog.py
 ```
 
@@ -67,7 +69,7 @@ On the first run, you will be prompted to enter your endpoint URL, watch interva
 Start the PM2 service:
 
 ```bash
-pm2 start "python3 endpoint_watchdog.py" --name "endpoint-watchdog"
+pm2 start "python3 endpoint_watchdog.py" --name "custom-name-watchdog"
 pm2 save --force
 ```
 
@@ -89,19 +91,19 @@ pm2 set pm2-logrotate:rotateInterval '00 */6 * * *'
 To view logs:
 
 ```bash
-pm2 logs endpoint-watchdog
+pm2 logs custom-name-watchdog
 ```
 
 To stop the service:
 
 ```bash
-pm2 stop endpoint-watchdog
+pm2 stop custom-name-watchdog
 ```
 
 To restart the service:
 
 ```bash
-pm2 restart endpoint-watchdog
+pm2 restart custom-name-watchdog
 ```
 
 ## Configuration
@@ -132,5 +134,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Disclaimer
 
 This script is not officially associated with any endpoint provider. Use at your own risk.
-
-# endpoint-watchdog
