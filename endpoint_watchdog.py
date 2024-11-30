@@ -33,9 +33,6 @@ CACHE_FILE = "endpoint_cache.json"
 auto_update_enabled = True
 UPDATE_INTERVAL_MULTIPLIER = 5  # number of iterations before checking for updates
 
-# Timestamp pattern
-timestamp_pattern = re.compile(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z')
-
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -266,16 +263,23 @@ def fetch_and_format_response(url, fields_to_ignore=None):
         json_data = canonicaljson.encode_canonical_json(json_data).decode('utf-8')
                 
         #json_data = json.dumps(json_data, indent=4)  # Pretty format
-        return json_data.splitlines()  # Split into lines for processing
+        #return json_data.splitlines()  # Split into lines for processing
+        #print(json_data)
+        
+        return json_data
     except ValueError as e:
         raise Exception("Failed to parse response as JSON") from e
 
 
 def generate_diff(old_data, new_data):
     
-    # Split the data into lines
-    old_data = old_data.splitlines()
-    new_data = new_data.splitlines()
+    # # Make the object readable since we're always dealing with json
+    # old_data = json.dumps(old_data, indent=4)
+    # new_data = json.dumps(new_data, indent=4)
+    
+    # Turn string back into json object
+    old_data = json.dumps(json.loads(old_data), indent=4).splitlines()
+    new_data = json.dumps(json.loads(new_data), indent=4).splitlines()    
     
     diff = difflib.unified_diff(
         old_data,
