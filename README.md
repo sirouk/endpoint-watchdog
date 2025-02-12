@@ -29,8 +29,9 @@ sudo apt install -y python3 python3-pip python3-venv
 
 # npm and additional tools
 sudo apt install jq npm -y
+sudo npm install pm2 -g && pm2 update
 
-# pm2 and enable startup on reboot (careful, this restarts pm2 processes)
+# make pm2 and processes survive reboot
 npm install pm2@latest -g && pm2 update && pm2 save --force && pm2 startup && pm2 save
 ```
 
