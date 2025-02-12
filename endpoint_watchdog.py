@@ -152,7 +152,7 @@ def report_for_duty(endpoint_url, message_topic, message_contents, notify_webhoo
     # Message content
     host_ip = get_host_ip()
     host_name = socket.gethostname() 
-    os.chdir(os.path.dirname(__file__))
+    os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
     commit_before_pull = get_latest_commit_hash()
     system_uptime = get_system_uptime()
 
@@ -225,7 +225,7 @@ def get_latest_commit_hash():
 
 
 def check_for_updates():
-    os.chdir(os.path.dirname(__file__))
+    os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
     commit_before_pull = get_latest_commit_hash()
     subprocess.run(["git", "pull"], check=True)
     commit_after_pull = get_latest_commit_hash()
