@@ -53,11 +53,12 @@ def initialize_env_file(env_file_path):
     validate_endpoint(endpoint_url)
     
     # Check for FIELDS_TO_IGNORE (a CSV of JSON fields to ignore in the diff)
-    fields_to_ignore = os.getenv('FIELDS_TO_IGNORE')
-    if not fields_to_ignore:
-        print("Fields to ignore (CSV) are required to run this script.")
-        fields_to_ignore = input("Please enter the fields to ignore as a comma-separated list: ").strip()
-    fields_to_ignore = [field.strip() for field in fields_to_ignore.split(',') if field.strip()]
+    fields_to_ignore = os.getenv('FIELDS_TO_IGNORE', '__DEFAULT_IGNORE__')
+    if fields_to_ignore == '__DEFAULT_IGNORE__':
+        print("No fields to ignore provided; defaulting to no fields ignored.")
+    # Split into a list and filter out our dummy default if present.
+    fields_to_ignore = [field.strip() for field in fields_to_ignore.split(',') if field.strip() and field.strip() != '__DEFAULT_IGNORE__']
+
     
     # Check for ENDPOINT_URL
     watch_interval = os.getenv('WATCH_INTERVAL')
